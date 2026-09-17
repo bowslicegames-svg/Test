@@ -1,0 +1,10 @@
+<!DOCTYPEhtml><htmllang="en"><head><metacharset="UTF-8"><metaname="viewport"content="width=device-width, initial-scale=1.0"><title>Dino Rescue Search</title><style>body {margin:0;padding:20px;font-family: sans-serif;background:#fff;display: flex;justify-content: center;align-items: center;height:100vh; }.container {text-align: left;width:95%;max-width:600px;}input[type=text] {width:100%;padding:14px16px;box-sizing: border-box;font-size:18px;border-radius:24px;border:1px solid#dfe1e5;outline: none;transition: all0.3s ease;background-color:#fff!important;}input[type=text]:focus {box-shadow:01px6pxrgba(32,33,36,.28);border-color:rgba(22,129,247,0.75);}</style></head><body><divclass="container"><!-- Simple Form --><formid="searchForm"action="https://www.google.com/search"method="GET"><inputtype="text"name="q"id="googleInput"autocomplete="off"autofocusplaceholder="Search Google or Type a URL..."required></form><script>// Wait for page to loadwindow.onload =function() {const input =document.getElementById('googleInput');// 1. Handle "Enter" key press immediately without reloading first (optional, but keeps flow smooth)
+            input.addEventListener("keypress",function(event) {if (event.key ==="Enter") {
+                    event.preventDefault();// Stop default form submission animation delaylet query = input.value;// Clean up the query slightly to ensure valid URL params
+                    query =encodeURIComponent(query);// Build a clean Google Search URL with standard parameters// Using 'btnI=1' helps force image results sometimes, keeping it light:const url =`https://www.google.com/search?q=${query}&source=lnms&bih=600`;// Directly jump to the new page.window.location.href = url;
+                }
+            });// 2. Focus input automatically when screen touches (mobile optimization)document.body.addEventListener('click',function() {if(document.activeElement.id !=='googleInput') {
+                   input.focus();
+               }
+           },true);// Auto-focus on load (critical for mobile)setTimeout(() => { input.focus(); },500);
+        };</script></div></body></html>
