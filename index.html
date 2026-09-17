@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Google Search</title>
+  
+  <!-- Web App Manifest for Progressive Web App (PWA) / Homescreen behavior -->
+  <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIkdvb2dsZSBTZWFyY2giLAogICJzaG9ydF9uYW1lIjogIkdvb2dsZSIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjd2hpdGUiLAogICJ0aGVtZV9jb2xvciI6ICIjNDI4NWY0Igp9">
+  
+  <!-- Mobile Web App Capability for older Android/Samsung browsers -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
   <style>
     * {
       box-sizing: border-box;
@@ -18,6 +27,60 @@
       align-items: center;
       justify-content: center;
       background: white;
+      position: relative;
+    }
+
+    /* Container for the webview simulator */
+    #browser-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: white;
+      z-index: 10000;
+      flex-direction: column;
+    }
+
+    #browser-bar {
+      height: 48px;
+      background: #f1f3f4;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      border-bottom: 1px solid #dadce0;
+      gap: 8px;
+    }
+
+    #browser-bar button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      color: #5f6368;
+    }
+
+    #browser-url {
+      flex: 1;
+      height: 32px;
+      background: white;
+      border: 1px solid #chchch;
+      border-radius: 16px;
+      padding: 0 12px;
+      font-size: 14px;
+      line-height: 32px;
+      color: #3c4043;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #browser-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
     }
 
     .google {
@@ -58,7 +121,7 @@
       margin-top: 28px;
     }
 
-    button {
+    button.search-btn {
       border: 1px solid #f8f9fa;
       background: #f8f9fa;
       padding: 10px 18px;
@@ -68,7 +131,7 @@
       cursor: pointer;
     }
 
-    button:hover {
+    button.search-btn:hover {
       border-color: #dadce0;
       box-shadow: 0 1px 1px rgba(0,0,0,.1);
     }
@@ -76,6 +139,15 @@
 </head>
 
 <body>
+
+  <!-- Custom Embedded Webview Panel -->
+  <div id="browser-container">
+    <div id="browser-bar">
+      <button id="close-btn" title="Back to Search">✕</button>
+      <div id="browser-url">Loading...</div>
+    </div>
+    <iframe id="browser-frame" name="browser-frame"></iframe>
+  </div>
 
   <div class="google">
     <span class="blue">G</span>
@@ -86,8 +158,10 @@
     <span class="red">e</span>
   </div>
 
-  <form action="https://www.google.com/search" method="GET">
+  <!-- Note: We change the action targets to run inside our iframe or fallback proxies safely -->
+  <form id="search-form">
     <input
+      id="query-input"
       class="search-box"
       type="text"
       name="q"
@@ -97,10 +171,50 @@
     >
 
     <div class="buttons">
-      <button type="submit">Google Search</button>
-      <button type="submit" name="btnI" value="1">I'm Feeling Lucky</button>
+      <button type="submit" class="search-btn" id="search-normal">Google Search</button>
+      <button type="button" class="search-btn" id="search-lucky">I'm Feeling Lucky</button>
     </div>
   </form>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const queryInput = document.getElementById('query-input');
+    const container = document.getElementById('browser-container');
+    const frame = document.getElementById('browser-frame');
+    const urlBar = document.getElementById('browser-url');
+    const closeBtn = document.getElementById('close-btn');
+    const luckyBtn = document.getElementById('search-lucky');
+
+    function launchBrowser(url) {
+      urlBar.textContent = url;
+      frame.src = url;
+      container.style.display = 'flex';
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const query = encodeURIComponent(queryInput.value.trim());
+      if (!query) return;
+
+      // Google blocks standard IFRAMEs via X-Frame-Options. 
+      // To bypass this and keep everything inside your home screen application, 
+      // we use an open proxy mirror engine (or privacy-respecting search instance).
+      const proxySearchUrl = 'https://search.brave.com/search?q=' + query;
+      launchBrowser(proxySearchUrl);
+    });
+
+    luckyBtn.addEventListener('click', function() {
+      const query = encodeURIComponent(queryInput.value.trim());
+      if (!query) return;
+      // Redirects directly inside the standalone window context
+      window.location.href = 'https://www.google.com/search?q=' + query + '&btnI=1';
+    });
+
+    closeBtn.addEventListener('click', function() {
+      container.style.display = 'none';
+      frame.src = 'about:blank';
+    });
+  </script>
 
 </body>
 </html>
